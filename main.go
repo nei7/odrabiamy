@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/fatih/color"
+	"github.com/nei7/odrabiamy/cmd"
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 
 	cli.VersionFlag = &cli.BoolFlag{
-		Name:    "print-version",
-		Aliases: []string{"V", "v", "version"},
+		Name:    "version",
+		Aliases: []string{"V", "v"},
 		Usage:   "print version",
 	}
 
@@ -25,27 +25,13 @@ func main() {
 	}
 
 	app := cli.App{
-		Flags: []cli.Flag{
-			&cli.StringFlag{},
-		},
-		Name:    "odrabiamy",
-		Version: "v0.0.1",
-		Usage:   "",
+		Name:        "odrabiamy",
+		Description: "odrabiamy.pl cli",
+		Version:     "v0.0.1",
+		Usage:       "",
 		Commands: []*cli.Command{
-			{
-				Name:        "info",
-				Description: "Get user info",
-				Action: func(c *cli.Context) error {
-					data, err := GetTokenInfo()
-					if err != nil {
-						return err
-					}
-
-					fmt.Printf("session will expire in %.0f hours \n", time.Unix(int64(data.Exp), 0).Sub(time.Now()).Hours())
-
-					return nil
-				},
-			},
+			cmd.InfoCommand(),
+			cmd.GetExercises(),
 			{
 				Name:        "generate",
 				Description: "Generate new jwt token",
@@ -53,9 +39,6 @@ func main() {
 					return nil
 				},
 			},
-		},
-		Action: func(c *cli.Context) error {
-			return nil
 		},
 	}
 

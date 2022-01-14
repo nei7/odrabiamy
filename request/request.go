@@ -1,4 +1,4 @@
-package main
+package request
 
 import (
 	"fmt"
@@ -28,6 +28,15 @@ func Request(method, url string, body io.Reader) (*http.Response, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	okStatusCodes := map[int]bool{
+		200: true,
+		201: true,
+	}
+
+	if !okStatusCodes[res.StatusCode] {
+		return nil, fmt.Errorf("%s %s - %s", method, url, res.Status)
 	}
 
 	return res, nil
