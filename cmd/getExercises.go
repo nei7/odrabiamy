@@ -9,6 +9,7 @@ import (
 
 	"github.com/nei7/odrabiamy/config"
 	"github.com/nei7/odrabiamy/odrabiamy"
+	"github.com/nei7/odrabiamy/s3"
 	"github.com/urfave/cli/v2"
 )
 
@@ -48,33 +49,24 @@ func GetExercises() *cli.Command {
 			client := odrabiamy.NewClient()
 
 			if time.Now().After(time.Unix(int64(tokenInfo.AccessTokenExpires), 0)) {
-
 				if err := client.GenerateSession(); err != nil {
 					return err
 				}
 			}
-
 			pages, err := client.LoadPages(book)
 			if err != nil {
 				return err
 			}
-
-			startPageIndex := func() int {
-				for index, page := range pages {
-					if page == start {
-						return index
-					}
-				}
-				return -1
-			}()
-
+			startPageIndex := getStartIndex(pages, start)
 			if startPageIndex == -1 {
 				return errors.New("invalid page")
 			}
-
 			if startPageIndex+int(count) > len(pages) {
-				return errors.New("you cant get that many pages")
+				return errors.New("you can't get that many pages")
 			}
+
+			session := s3.InitSession()
+
 			if _, err := os.Stat(config.Config.Path); err != nil {
 				os.MkdirAll(config.Config.Path, 0777)
 			}
@@ -107,9 +99,23 @@ func GetExercises() *cli.Command {
 					if _, err := f.WriteString(exercise.Content); err != nil {
 						return err
 					}
+
+					if err = s3.UploadFile(session, path); err != nil {
+						return err
+					}
 				}
 			}
 			return nil
 		},
 	}
+}
+
+func getStartIndex(pages []uint, start uint) int {
+	for index, page := range pages {
+		if page == start {
+			return index
+		}
+	}
+	return -1
+
 }

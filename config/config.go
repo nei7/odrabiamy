@@ -11,6 +11,10 @@ type config struct {
 	Headers map[string]string `yaml:"headers"`
 	Token   string            `yaml:"token"`
 	Path    string            `yaml:"path"`
+	S3      struct {
+		Bucket string `yaml:"bucket"`
+		Region string `yaml:"region"`
+	} `yaml:"s3"`
 }
 
 var Config config
@@ -25,5 +29,4 @@ func init() {
 	if err := yaml.NewDecoder(f).Decode(&Config); err != nil {
 		log.Fatal(err)
 	}
-
 }
