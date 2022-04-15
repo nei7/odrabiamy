@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/nei7/odrabiamy/config"
+	"github.com/nei7/odrabiamy/logger"
 )
 
 func Request(method, url string, body io.Reader) (*http.Response, error) {
@@ -16,6 +17,7 @@ func Request(method, url string, body io.Reader) (*http.Response, error) {
 
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
+		logger.ErrorLogger.Fatalf("HTTP: %v \n", err)
 		return nil, err
 	}
 
@@ -27,6 +29,7 @@ func Request(method, url string, body io.Reader) (*http.Response, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
+		logger.ErrorLogger.Fatalf("HTTP: %v \n", err)
 		return nil, err
 	}
 
@@ -35,9 +38,15 @@ func Request(method, url string, body io.Reader) (*http.Response, error) {
 		201: true,
 	}
 
+	status := fmt.Sprintf("HTTP: %s %s - %s", method, url, res.Status)
+
 	if !okStatusCodes[res.StatusCode] {
-		return nil, fmt.Errorf("%s %s - %s", method, url, res.Status)
+		err := fmt.Errorf(status)
+
+		logger.ErrorLogger.Fatalln(err)
+		return nil, err
 	}
 
+	logger.InfoLogger.Println(status)
 	return res, nil
 }

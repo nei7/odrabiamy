@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/nei7/odrabiamy/config"
+	"github.com/nei7/odrabiamy/logger"
 	"github.com/nei7/odrabiamy/odrabiamy"
 	"github.com/nei7/odrabiamy/s3"
 	"github.com/urfave/cli/v2"
@@ -37,9 +38,7 @@ func GetExercises() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			start := c.Uint("start")
-			count := c.Uint("count")
-			book := c.String("book")
+			start, count, book := c.Uint("start"), c.Uint("count"), c.String("book")
 
 			tokenInfo, err := odrabiamy.GetTokenInfo()
 			if err != nil {
@@ -99,10 +98,13 @@ func GetExercises() *cli.Command {
 					if _, err := f.WriteString(exercise.Content); err != nil {
 						return err
 					}
+					logger.InfoLogger.Printf("Successfully uploaded exercise %d from page %s to file storage \n", page, exercise.Number)
 
 					if err = s3.UploadFile(session, path); err != nil {
 						return err
 					}
+
+					logger.InfoLogger.Printf("S3: Successfully uploaded exercise %d from page %s \n", page, exercise.Number)
 				}
 			}
 			return nil

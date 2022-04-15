@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/nei7/odrabiamy/config"
+	"github.com/nei7/odrabiamy/logger"
 )
 
 func InitSession() *session.Session {
@@ -24,12 +25,14 @@ func InitSession() *session.Session {
 func UploadFile(session *session.Session, dir string) error {
 	fi, err := os.Open(dir)
 	if err != nil {
+		logger.ErrorLogger.Fatalf("S3: %v \n", err)
 		return err
 	}
 	defer fi.Close()
 
 	info, err := fi.Stat()
 	if err != nil {
+		logger.ErrorLogger.Fatalf("S3: %v \n", err)
 		return err
 	}
 

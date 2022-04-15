@@ -18,14 +18,7 @@ func NewClient() *client {
 	return &client{}
 }
 
-type exercise struct {
-	Content string `json:"content"`
-	Page    uint   `json:"page"`
-	Number  string `json:"number"`
-	Id      int    `json:"id"`
-}
-
-func (c *client) LoadExercies(page uint, book string) ([]exercise, error) {
+func (c *client) LoadExercies(page uint, book string) ([]Exercise, error) {
 	url := fmt.Sprintf("https://odrabiamy.pl/api/v3/books/%s/pages/%d/exercises", book, page)
 	res, err := request.Request(http.MethodGet, url, nil)
 	if err != nil {
@@ -33,7 +26,7 @@ func (c *client) LoadExercies(page uint, book string) ([]exercise, error) {
 	}
 	defer res.Body.Close()
 
-	var exercises []exercise
+	var exercises []Exercise
 	if err := json.NewDecoder(res.Body).Decode(&exercises); err != nil {
 		return nil, err
 	}
@@ -91,29 +84,16 @@ func (c *client) LoadPages(book string) ([]uint, error) {
 	return pages.Pages, nil
 }
 
-type payload struct {
-	AccessToken        string `json:"accessToken"`
-	RefreshToken       string `json:"refreshToken"`
-	AccessTokenExpires int    `json:"accessTokenExpires"`
-	User               struct {
-		UserId uint   `json:"user_id"`
-		Email  string `json:"email"`
-		Iat    uint   `json:"iat"`
-	} `json:"user"`
-	Iat int `json:"iat"`
-	Exp int `json:"exp"`
-}
-
-func GetTokenInfo() (payload, error) {
+func GetTokenInfo() (sessionInfo, error) {
 	encPayload := strings.Split(config.Config.Token, ".")[1]
 	tokenPayload, err := base64.StdEncoding.DecodeString(encPayload)
 	if err != nil {
-		return payload{}, err
+		return sessionInfo{}, err
 	}
 
-	var data payload
+	var data sessionInfo
 	if err := json.Unmarshal(tokenPayload, &data); err != nil {
-		return payload{}, nil
+		return sessionInfo{}, nil
 	}
 
 	return data, nil
